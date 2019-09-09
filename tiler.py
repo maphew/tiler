@@ -94,7 +94,7 @@ def load_tiles(paths):
 
             with open('tiles.pickle', 'wb') as f:
                 pickle.dump(tiles, f)
-        
+
         # load pickle with tiles (one file only)
         else:
             with open(path, 'rb') as f:
@@ -154,7 +154,7 @@ def get_processed_image_boxes(image_path, tiles):
         boxes = image_boxes(img, res)
         modes = pool.map(mode_color, [x['img'] for x in boxes])
         most_similar_tiles = pool.starmap(most_similar_tile, zip(modes, [ts for x in range(len(modes))]))
-        
+
         i = 0
         for min_dist, tile in most_similar_tiles:
             boxes[i]['min_dist'] = min_dist
@@ -163,7 +163,7 @@ def get_processed_image_boxes(image_path, tiles):
 
         all_boxes += boxes
 
-    return all_boxes, img.shape 
+    return all_boxes, img.shape
 
 
 # places a tile in the image
@@ -181,7 +181,7 @@ def place_tile(img, box):
 def create_tiled_image(boxes, res, render=False):
     print('Creating tiled image')
     img = np.zeros(shape=(res[0], res[1], 4), dtype=np.uint8)
-    
+
     for box in tqdm(sorted(boxes, key=lambda x: x['min_dist'], reverse=OVERLAP_TILES)):
         place_tile(img, box)
         if render:
@@ -197,7 +197,7 @@ def main():
         image_path = sys.argv[1]
     else:
         image_path = conf.IMAGE_TO_TILE
-    
+
     if len(sys.argv) > 2:
         tiles_paths = sys.argv[2:]
     else:
@@ -217,5 +217,17 @@ def main():
     cv2.imwrite(conf.OUT, img)
 
 
+def demo_mode():
+    here = os.path.abspath(os.path.dirname(__file__))
+    if not os.path.exists(os.path.join(here, 'gen_tiles.py')):
+        return
+    print('-'*60)
+    print("No command line parameters supplied and we're in source folder, entering demo mode\n")
+    sys.argv.append('images/cake_at_simple.png')
+    sys.argv.append('tiles')
+
+
 if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        demo_mode()
     main()
